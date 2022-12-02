@@ -3,6 +3,8 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 // Response is the generic API response container.
@@ -30,13 +32,14 @@ func NewServer(listenAddress string) *Server {
 
 // Run registers all HandlerFuncs for the existing HTTP routes and starts the Server.
 func (s *Server) Run() error {
-	mux := http.NewServeMux()
+	httpMux := mux.NewRouter()
 
-	mux.Handle("/api/v0/health", http.HandlerFunc(s.Health))
-
+	httpMux.Handle("/api/v0/health", http.HandlerFunc(s.Health))
+	httpMux.Handle("/api/v0/device", http.HandlerFunc(s.CreateSignatureDevice))
+	httpMux.Handle("/api/v0/device/{deviceUUID}/sign", http.HandlerFunc(s.SignTransaction))
 	// TODO: register further HandlerFuncs here ...
 
-	return http.ListenAndServe(s.listenAddress, mux)
+	return http.ListenAndServe(s.listenAddress, httpMux)
 }
 
 // WriteInternalError writes a default internal error message as an HTTP response.
