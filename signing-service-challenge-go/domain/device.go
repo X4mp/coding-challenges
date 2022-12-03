@@ -44,10 +44,30 @@ func NewSignatureDevice(label, algorithm string) (device SignatureDevice, err er
 
 // SignatureResponse data model
 type SignatureResponse struct {
+	signature []byte
 }
 
 // SignTransaction(deviceId: string, data: string): SignatureResponse
-func (d SignatureDevice) Sign(deviceId string, dataToBeSigned string) *SignatureResponse {
+func (d SignatureDevice) Sign(deviceId string, dataToBeSigned string) (response *SignatureResponse, err error) {
 
-	return &SignatureResponse{}
+	var signer crypto.Signer
+	switch (d.Algorithm) {
+	case "ECC":
+		signer = crypto.NewECCSigner(d.KeyPairECC.Private)
+	case "RSA": 
+		signer = crypto.NewRSASigner(d.KeyPairRSA.Private)
+	default:
+		err = ErrInvalidAlgorithm
+		return
+	}
+
+	signature, err := signer.Sign([]byte(dataToBeSigned))
+	if err != nil {
+		return
+	}
+
+	response = &SignatureResponse{
+		signature: signature,
+	}
+	return
 }

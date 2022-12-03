@@ -18,7 +18,13 @@ type RSASigner struct {
 	privateKey *rsa.PrivateKey
 }
 
-func (r *RSASigner) Sign(dataToBeSigned []byte) (signature []byte, err error) {
+func NewRSASigner(privateKey *rsa.PrivateKey) RSASigner {
+	return RSASigner{
+		privateKey: privateKey,
+	}
+}
+
+func (r RSASigner) Sign(dataToBeSigned []byte) (signature []byte, err error) {
 	msgHash := sha256.New()
 	_, err = msgHash.Write(dataToBeSigned)
 	if err != nil {
@@ -26,17 +32,21 @@ func (r *RSASigner) Sign(dataToBeSigned []byte) (signature []byte, err error) {
 	}
 	msgHashSum := msgHash.Sum(nil)
 
-
 	signature, err = rsa.SignPSS(rand.Reader, r.privateKey, crypto.SHA256, msgHashSum, nil)
 	return
 }
-
 
 type ECCSigner struct {
 	eccPrivateKey *ecdsa.PrivateKey
 }
 
-func (e *ECCSigner) Sign(dataToBeSigned []byte) (signature []byte, err error) {
+func NewECCSigner(privateKey *ecdsa.PrivateKey) ECCSigner {
+	return ECCSigner{
+		eccPrivateKey: privateKey,
+	}
+}
+
+func (e ECCSigner) Sign(dataToBeSigned []byte) (signature []byte, err error) {
 	msgHash := sha256.New()
 	_, err = msgHash.Write(dataToBeSigned)
 	if err != nil {
