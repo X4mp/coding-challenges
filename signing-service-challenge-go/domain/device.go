@@ -16,6 +16,9 @@ type SignatureDevice struct {
 	Algorithm  string
 	KeyPairRSA *crypto.RSAKeyPair
 	KeyPairECC *crypto.ECCKeyPair
+	
+	counter uint64
+	lastSignature string
 }
 
 func NewSignatureDevice(label, algorithm string) (device SignatureDevice, err error) {
@@ -44,7 +47,7 @@ type SignatureResponse struct {
 }
 
 // SignTransaction(deviceId: string, data: string): SignatureResponse
-func (d SignatureDevice) Sign(deviceId string, data string) *SignatureResponse {
+func (d SignatureDevice) Sign(deviceId string, dataToBeSigned string) *SignatureResponse {
 
 	return &SignatureResponse{}
 }
