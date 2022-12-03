@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var UnknownDeviceError error = fmt.Errorf("No device for ID registered")
+var ErrUnknownDevice error = fmt.Errorf("no device for ID registered")
 
 // TODO: in-memory persistence ...
 type Database struct {
@@ -42,8 +42,15 @@ func (d *Database) GetSignatureDevice(deviceId uuid.UUID) (device *domain.Signat
 
 	device, ok := d.registeredDevicesMap[deviceId]
 	if !ok {
-		err = UnknownDeviceError
+		err = ErrUnknownDevice
 	}
 
 	return
+}
+
+func (d *Database) StoreSignatureDevice(device *domain.SignatureDevice) {
+	d.registeredDevicesMapMutex.Lock()
+	defer d.registeredDevicesMapMutex.Unlock()
+
+	d.registeredDevicesMap[device.DeviceId] = device
 }
