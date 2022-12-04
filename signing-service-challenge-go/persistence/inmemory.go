@@ -38,7 +38,7 @@ func (d *Database) IncCounter(deviceID uuid.UUID) {
 
 func (d *Database) GetSignatureDevice(deviceId uuid.UUID) (device *domain.SignatureDevice, err error) {
 	d.registeredDevicesMapMutex.RLock()
-	defer d.registeredDevicesMapMutex.Unlock()
+	defer d.registeredDevicesMapMutex.RUnlock()
 
 	device, ok := d.registeredDevicesMap[deviceId]
 	if !ok {

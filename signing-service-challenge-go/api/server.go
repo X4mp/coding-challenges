@@ -45,6 +45,8 @@ func (s *Server) Run() error {
 	return http.ListenAndServe(s.listenAddress, httpMux)
 }
 
+func (s *Server) GetSignatureDeviceFor()
+
 // WriteInternalError writes a default internal error message as an HTTP response.
 func WriteInternalError(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusInternalServerError)

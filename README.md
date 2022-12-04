@@ -13,5 +13,6 @@ Challenges are intended for the following "skill-levels" and domains of expertis
 ## Curl Examples
 ```
 curl localhost:8080/api/v0/device -d '{"label": "TestDevice", "algorithm": "ECC"}'
+curl localhost:8080/api/v0/device/b4b040f7-e197-4dae-a69b-0ab06d859a1a/sign -d '{"deviceId": "b4b040f7-e197-4dae-a69b-0ab06d859a1a", "data": "lorem ipsum"}'
 
 ```

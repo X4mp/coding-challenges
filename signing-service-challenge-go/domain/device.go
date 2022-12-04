@@ -81,3 +81,20 @@ func (d SignatureDevice) Sign(dataToBeSigned string) (response *SignatureRespons
 	}
 	return
 }
+
+func (d SignatureDevice) Verify(data, signature string) bool {
+	var err error
+	var verifier crypto.Verifier
+	switch d.Algorithm {
+	case "ECC":
+		verifier = &crypto.RSAVerifier{PublicKeyRSA: d.KeyPairRSA.Public}
+	case "RSA":
+		// TO BE IMPLEMENTED
+	default:
+		err = ErrInvalidAlgorithm
+		return false
+	}
+
+	err = verifier.VerifySignature([]byte(data), []byte(signature))
+	return err == nil
+}
