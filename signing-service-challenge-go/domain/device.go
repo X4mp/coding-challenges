@@ -1,6 +1,7 @@
 package domain
 
 import (
+	b64 "encoding/base64"
 	"fmt"
 
 	"github.com/X4mp/coding-challenges/signing-service-challenge/crypto"
@@ -22,10 +23,13 @@ type SignatureDevice struct {
 }
 
 func NewSignatureDevice(label, algorithm string) (device SignatureDevice, err error) {
+	deviceID := uuid.New()
+	initLastSignature := b64.StdEncoding.EncodeToString([]byte(deviceID.String()))
 	device = SignatureDevice{
 		DeviceId:  uuid.New(),
 		Label:     label,
 		Algorithm: algorithm,
+		lastSignature: initLastSignature,
 	}
 
 	switch algorithm {
@@ -44,7 +48,8 @@ func NewSignatureDevice(label, algorithm string) (device SignatureDevice, err er
 
 // SignatureResponse data model
 type SignatureResponse struct {
-	signature []byte
+	signature string
+	dataToBeSigned string
 }
 
 // SignTransaction(deviceId: string, data: string): SignatureResponse
@@ -61,13 +66,17 @@ func (d SignatureDevice) Sign(deviceId string, dataToBeSigned string) (response 
 		return
 	}
 
-	signature, err := signer.Sign([]byte(dataToBeSigned))
+	input := fmt.Sprintf("%d_%s_%s", d.counter, dataToBeSigned, d.lastSignature)
+	signature, err := signer.Sign([]byte(input))
 	if err != nil {
 		return
 	}
 
+	d.lastSignature = b64.StdEncoding.EncodeToString(signature)
+
 	response = &SignatureResponse{
-		signature: signature,
+		signature: d.lastSignature,
+		dataToBeSigned: input,
 	}
 	return
 }
