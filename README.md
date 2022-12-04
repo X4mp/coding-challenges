@@ -13,6 +13,6 @@ Challenges are intended for the following "skill-levels" and domains of expertis
 ## Curl Examples
 ```
 curl localhost:8080/api/v0/device -d '{"label": "TestDevice", "algorithm": "ECC"}'
-curl localhost:8080/api/v0/device/b4b040f7-e197-4dae-a69b-0ab06d859a1a/sign -d '{"deviceId": "b4b040f7-e197-4dae-a69b-0ab06d859a1a", "data": "lorem ipsum"}'
-
+curl localhost:8080/api/v0/device/e804c3be-fd82-4ef5-ba41-fc69b2ff8f10/sign -d '{"deviceId": "e804c3be-fd82-4ef5-ba41-fc69b2ff8f10", "data": "lorem ipsum"}'
+curl localhost:8080/api/v0/device/e804c3be-fd82-4ef5-ba41-fc69b2ff8f10/verify -d '{"deviceId": "e804c3be-fd82-4ef5-ba41-fc69b2ff8f10", "data": "0_lorem ipsum_MTJhODVmNGUtMTg4ZS00ZjIwLWFkMGMtYjJhMTIyMDIwNTAx", "signature": "MGQCMBEvznpvlCKc5U8+bjAiwCTFniEMnVPfqcfeHgEtnw0srtR3cEfGUTVOgR4cB3dgZQIwQIKqXp7P1T9b1i+SDNGpcRlN4/8ao6Cu0nRkoXU6O4m9mYjEnioq2iQrahUnc4a7"}'
 ```

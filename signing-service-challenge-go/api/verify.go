@@ -15,6 +15,7 @@ var (
 
 type VerifySignatureRequest struct {
 	DeviceId  string `json:"deviceId"`
+	Data      string `json:"data"`
 	Signature string `json:"signature"`
 }
 
@@ -39,5 +40,12 @@ func (s *Server) VerifySignature(response http.ResponseWriter, request *http.Req
 	if err != nil {
 		WriteErrorResponse(response, http.StatusBadRequest, []string{ErrInvalidVerifyRequest.Error()})
 		return
+	}
+
+	verified := device.Verify(verifySignatureRequest.Data, verifySignatureRequest.Signature)
+	if !verified {
+		WriteErrorResponse(response, http.StatusBadRequest, []string{"not verified"})
+	} else {
+		WriteAPIResponse(response, http.StatusOK, nil)
 	}
 }

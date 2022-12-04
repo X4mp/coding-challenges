@@ -21,14 +21,14 @@ type ErrorResponse struct {
 // Server manages HTTP requests and dispatches them to the appropriate services.
 type Server struct {
 	listenAddress string
-	database *persistence.Database
+	database      *persistence.Database
 }
 
 // NewServer is a factory to instantiate a new Server.
 func NewServer(listenAddress string) *Server {
 	return &Server{
 		listenAddress: listenAddress,
-		database: persistence.NewDatabase(),
+		database:      persistence.NewDatabase(),
 		// TODO: add services / further dependencies here ...
 	}
 }
@@ -40,12 +40,11 @@ func (s *Server) Run() error {
 	httpMux.Handle("/api/v0/health", http.HandlerFunc(s.Health))
 	httpMux.Handle("/api/v0/device", http.HandlerFunc(s.CreateSignatureDevice))
 	httpMux.Handle("/api/v0/device/{deviceUUID}/sign", http.HandlerFunc(s.SignTransaction))
+	httpMux.Handle("/api/v0/device/{deviceUUID}/verify", http.HandlerFunc(s.VerifySignature))
 	// TODO: register further HandlerFuncs here ...
 
 	return http.ListenAndServe(s.listenAddress, httpMux)
 }
-
-func (s *Server) GetSignatureDeviceFor()
 
 // WriteInternalError writes a default internal error message as an HTTP response.
 func WriteInternalError(w http.ResponseWriter) {

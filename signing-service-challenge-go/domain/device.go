@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// TODO: signature device domain model ...
 var ErrInvalidAlgorithm error = fmt.Errorf("invalid algorithm choosen")
 
 type SignatureDevice struct {
@@ -87,14 +86,22 @@ func (d SignatureDevice) Verify(data, signature string) bool {
 	var verifier crypto.Verifier
 	switch d.Algorithm {
 	case "ECC":
-		verifier = &crypto.RSAVerifier{PublicKeyRSA: d.KeyPairRSA.Public}
+		verifier = &crypto.ECCVerifier{PublicKeyECC: d.KeyPairECC.Public}
 	case "RSA":
-		// TO BE IMPLEMENTED
+		verifier = &crypto.RSAVerifier{PublicKeyRSA: d.KeyPairRSA.Public}
 	default:
-		err = ErrInvalidAlgorithm
 		return false
 	}
 
-	err = verifier.VerifySignature([]byte(data), []byte(signature))
+	rawSignature := make([]byte, len([]byte(signature)))
+	_, err = b64.StdEncoding.Decode(rawSignature, []byte(signature))
+	if err != nil {
+		fmt.Println("Verification Error: not base64 decodable signature")
+		return false
+	}
+	err = verifier.VerifySignature([]byte(data), rawSignature)
+	if err != nil {
+		fmt.Println("Verification Error: ", err.Error())
+	}
 	return err == nil
 }
