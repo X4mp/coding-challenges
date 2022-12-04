@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -9,8 +10,14 @@ import (
 )
 
 var (
-	ErrNoUUID error = fmt.Errorf("device-id is not a valid UUID")
+	ErrNoUUID             error = fmt.Errorf("device-id is not a valid UUID")
+	ErrInvalidSignRequest error = fmt.Errorf("ivalid sign-transaction request format")
 )
+
+type SignTransactionRequest struct {
+	DeviceID string `json:"deviceId"`
+	Data     string `json:"data"`
+}
 
 func (s *Server) SignTransaction(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
@@ -27,6 +34,18 @@ func (s *Server) SignTransaction(response http.ResponseWriter, request *http.Req
 		return
 	}
 
-	device.Sign(deviceIDString, "")
-	WriteAPIResponse(response, 200, nil)
+	signTransactionRequest := SignTransactionRequest{}
+	decoder := json.NewDecoder(request.Body)
+	err = decoder.Decode(&signTransactionRequest)
+	if err != nil {
+		WriteErrorResponse(response, http.StatusBadRequest, []string{ErrInvalidSignRequest.Error()})
+		return
+	}
+
+	signatureResponse, err := device.Sign(signTransactionRequest.Data)
+	if err != nil {
+		WriteInternalError(response)
+		return
+	}
+	WriteAPIResponse(response, 200, signatureResponse)
 }

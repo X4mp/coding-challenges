@@ -17,8 +17,8 @@ type SignatureDevice struct {
 	Algorithm  string
 	KeyPairRSA *crypto.RSAKeyPair
 	KeyPairECC *crypto.ECCKeyPair
-	
-	counter uint64
+
+	counter       uint64
 	lastSignature string
 }
 
@@ -26,9 +26,9 @@ func NewSignatureDevice(label, algorithm string) (device SignatureDevice, err er
 	deviceID := uuid.New()
 	initLastSignature := b64.StdEncoding.EncodeToString([]byte(deviceID.String()))
 	device = SignatureDevice{
-		DeviceId:  uuid.New(),
-		Label:     label,
-		Algorithm: algorithm,
+		DeviceId:      uuid.New(),
+		Label:         label,
+		Algorithm:     algorithm,
 		lastSignature: initLastSignature,
 	}
 
@@ -48,18 +48,19 @@ func NewSignatureDevice(label, algorithm string) (device SignatureDevice, err er
 
 // SignatureResponse data model
 type SignatureResponse struct {
-	signature string
-	dataToBeSigned string
+	Signature      string `json:"signature"`
+	DataToBeSigned string `json:"signed_data"`
 }
 
-// SignTransaction(deviceId: string, data: string): SignatureResponse
-func (d SignatureDevice) Sign(deviceId string, dataToBeSigned string) (response *SignatureResponse, err error) {
+// Sign takes the user-data to be signed as input, generates the signature based on the algorithm of the device and returns the
+// base64 encoded signature together with the concrete input string
+func (d SignatureDevice) Sign(dataToBeSigned string) (response *SignatureResponse, err error) {
 
 	var signer crypto.Signer
-	switch (d.Algorithm) {
+	switch d.Algorithm {
 	case "ECC":
 		signer = crypto.NewECCSigner(d.KeyPairECC.Private)
-	case "RSA": 
+	case "RSA":
 		signer = crypto.NewRSASigner(d.KeyPairRSA.Private)
 	default:
 		err = ErrInvalidAlgorithm
@@ -75,8 +76,8 @@ func (d SignatureDevice) Sign(deviceId string, dataToBeSigned string) (response 
 	d.lastSignature = b64.StdEncoding.EncodeToString(signature)
 
 	response = &SignatureResponse{
-		signature: d.lastSignature,
-		dataToBeSigned: input,
+		Signature:      d.lastSignature,
+		DataToBeSigned: input,
 	}
 	return
 }

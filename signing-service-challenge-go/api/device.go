@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	ErrInvalidCreateRequest error = fmt.Errorf("request format invalid")
+	ErrInvalidCreateRequest error = fmt.Errorf("invalid create-signature-device request format")
 )
 
 // CreateSignatureDeviceRequest data model for parsing the request body
