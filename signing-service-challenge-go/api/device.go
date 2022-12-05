@@ -44,7 +44,7 @@ func (s *Server) CreateSignatureDevice(response http.ResponseWriter, request *ht
 		return
 	}
 
-	s.database.StoreSignatureDevice(&signatureDevice)
+	s.database.StoreSignatureDevice(signatureDevice)
 
 	deviceResponse := &CreateSignatureDeviceResponse{
 		Id:        signatureDevice.DeviceId.String(),

@@ -21,10 +21,10 @@ type SignatureDevice struct {
 	lastSignature string
 }
 
-func NewSignatureDevice(label, algorithm string) (device SignatureDevice, err error) {
+func NewSignatureDevice(label, algorithm string) (device *SignatureDevice, err error) {
 	deviceID := uuid.New()
 	initLastSignature := b64.StdEncoding.EncodeToString([]byte(deviceID.String()))
-	device = SignatureDevice{
+	device = &SignatureDevice{
 		DeviceId:      uuid.New(),
 		Label:         label,
 		Algorithm:     algorithm,
@@ -39,6 +39,7 @@ func NewSignatureDevice(label, algorithm string) (device SignatureDevice, err er
 		generator := crypto.ECCGenerator{}
 		device.KeyPairECC, err = generator.Generate()
 	default:
+		device = nil
 		err = ErrInvalidAlgorithm
 	}
 
@@ -93,12 +94,12 @@ func (d SignatureDevice) Verify(data, signature string) bool {
 		return false
 	}
 
-	rawSignature := make([]byte, len([]byte(signature)))
-	_, err = b64.StdEncoding.Decode(rawSignature, []byte(signature))
+	rawSignature, err := b64.StdEncoding.DecodeString(signature)
 	if err != nil {
 		fmt.Println("Verification Error: not base64 decodable signature")
 		return false
 	}
+	
 	err = verifier.VerifySignature([]byte(data), rawSignature)
 	if err != nil {
 		fmt.Println("Verification Error: ", err.Error())

@@ -42,7 +42,7 @@ func TestSigner_Sign(t *testing.T) {
 			msgHash, err := cr.HashMessage([]byte(incorectInput))
 			assert.NoError(t, err)
 
-			assert.EqualError(t, rsa.VerifyPSS(keyPair.Public, crypto.SHA256, msgHash, signature, nil), cr.ErrNotVerified.Error())
+			assert.EqualError(t, rsa.VerifyPSS(keyPair.Public, crypto.SHA256, msgHash, signature, nil), rsa.ErrVerification.Error())
 		})
 	})
 
