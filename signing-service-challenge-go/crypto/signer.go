@@ -25,12 +25,11 @@ func NewRSASigner(privateKey *rsa.PrivateKey) RSASigner {
 }
 
 func (r RSASigner) Sign(dataToBeSigned []byte) (signature []byte, err error) {
-	msgHash := sha256.New()
-	_, err = msgHash.Write(dataToBeSigned)
+
+	msgHashSum, err := HashMessage(dataToBeSigned)
 	if err != nil {
 		return
 	}
-	msgHashSum := msgHash.Sum(nil)
 
 	signature, err = rsa.SignPSS(rand.Reader, r.privateKey, crypto.SHA256, msgHashSum, nil)
 	return
