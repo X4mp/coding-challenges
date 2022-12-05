@@ -86,9 +86,9 @@ func (d SignatureDevice) Verify(data, signature string) bool {
 	var verifier crypto.Verifier
 	switch d.Algorithm {
 	case "ECC":
-		verifier = &crypto.ECCVerifier{PublicKeyECC: d.KeyPairECC.Public}
+		verifier = crypto.NewECCVerifier(d.KeyPairECC.Public)
 	case "RSA":
-		verifier = &crypto.RSAVerifier{PublicKeyRSA: d.KeyPairRSA.Public}
+		verifier = crypto.NewRSAVerifier(d.KeyPairRSA.Public)
 	default:
 		return false
 	}

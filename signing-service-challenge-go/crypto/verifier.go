@@ -15,10 +15,16 @@ type Verifier interface {
 }
 
 type RSAVerifier struct {
-	PublicKeyRSA *rsa.PublicKey
+	publicKeyRSA *rsa.PublicKey
 }
 
-func (r *RSAVerifier) VerifySignature(dataToBeSigned, signature []byte) (err error) {
+func NewRSAVerifier(publicKey *rsa.PublicKey) RSAVerifier {
+	return RSAVerifier{
+		publicKeyRSA: publicKey,
+	}
+}
+
+func (r RSAVerifier) VerifySignature(dataToBeSigned, signature []byte) (err error) {
 	msgHash := sha256.New()
 	_, err = msgHash.Write(dataToBeSigned)
 	if err != nil {
@@ -26,14 +32,20 @@ func (r *RSAVerifier) VerifySignature(dataToBeSigned, signature []byte) (err err
 	}
 	msgHashSum := msgHash.Sum(nil)
 
-	return rsa.VerifyPSS(r.PublicKeyRSA, crypto.SHA256, msgHashSum, signature, nil)
+	return rsa.VerifyPSS(r.publicKeyRSA, crypto.SHA256, msgHashSum, signature, nil)
 }
 
 type ECCVerifier struct {
-	PublicKeyECC *ecdsa.PublicKey
+	publicKeyECC *ecdsa.PublicKey
 }
 
-func (e *ECCVerifier) VerifySignature(dataToBeSigned, signature []byte) (err error) {
+func NewECCVerifier(publicKey *ecdsa.PublicKey) ECCVerifier {
+	return ECCVerifier{
+		publicKeyECC: publicKey,
+	}
+}
+
+func (e ECCVerifier) VerifySignature(dataToBeSigned, signature []byte) (err error) {
 	msgHash := sha256.New()
 	_, err = msgHash.Write(dataToBeSigned)
 	if err != nil {
@@ -41,7 +53,7 @@ func (e *ECCVerifier) VerifySignature(dataToBeSigned, signature []byte) (err err
 	}
 	msgHashSum := msgHash.Sum(nil)
 
-	verified := ecdsa.VerifyASN1(e.PublicKeyECC, msgHashSum, signature)
+	verified := ecdsa.VerifyASN1(e.publicKeyECC, msgHashSum, signature)
 	if !verified {
 		err = ErrNotVerified
 	}
