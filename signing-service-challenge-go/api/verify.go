@@ -46,6 +46,6 @@ func (s *Server) VerifySignature(response http.ResponseWriter, request *http.Req
 	if !verified {
 		WriteErrorResponse(response, http.StatusBadRequest, []string{"not verified"})
 	} else {
-		WriteAPIResponse(response, http.StatusOK, nil)
+		WriteAPIResponse(response, http.StatusOK, map[string]string{"status": "OK", "verification": "successfull"})
 	}
 }
