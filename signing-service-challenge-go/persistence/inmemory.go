@@ -12,27 +12,39 @@ var ErrUnknownDevice error = fmt.Errorf("no device for ID registered")
 
 // TODO: in-memory persistence ...
 type Database struct {
-	deviceCounterMapMutex sync.Mutex
-	deviceCounterMap map[uuid.UUID]uint64
+	deviceMutexMapMutex       sync.Mutex
+	deviceMutexMap            map[uuid.UUID]*sync.Mutex
 	registeredDevicesMapMutex sync.RWMutex
-	registeredDevicesMap map[uuid.UUID]*domain.SignatureDevice
+	registeredDevicesMap      map[uuid.UUID]*domain.SignatureDevice
 }
 
 func NewDatabase() *Database {
 	return &Database{
-		deviceCounterMap: make(map[uuid.UUID]uint64),
 		registeredDevicesMap: make(map[uuid.UUID]*domain.SignatureDevice),
+		deviceMutexMap:       make(map[uuid.UUID]*sync.Mutex),
 	}
 }
 
-func (d *Database) IncCounter(deviceID uuid.UUID) {
-	d.deviceCounterMapMutex.Lock()
-	defer d.deviceCounterMapMutex.Unlock()
+func (d *Database) LockDevice(deviceID uuid.UUID) func() {
+	d.deviceMutexMapMutex.Lock()
+	defer d.deviceMutexMapMutex.Unlock()
 
-	counter, ok := d.deviceCounterMap[deviceID]
+	deviceMutex, ok := d.deviceMutexMap[deviceID]
+	if !ok {
+		deviceMutex = &sync.Mutex{}
+		d.deviceMutexMap[deviceID] = deviceMutex
+	}
+	deviceMutex.Lock()
+	return func() {
+		deviceMutex.Unlock()
+	}
+}
+
+func (d *Database) IncrementCounter(deviceID uuid.UUID) {
+	device, ok := d.registeredDevicesMap[deviceID]
 	if ok {
-		counter += 1
-		d.deviceCounterMap[deviceID] = counter
+		device.Counter += 1
+		d.registeredDevicesMap[deviceID] = device
 	}
 }
 

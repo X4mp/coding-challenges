@@ -28,6 +28,10 @@ func (s *Server) SignTransaction(response http.ResponseWriter, request *http.Req
 		return
 	}
 
+	// Like a transaction
+	unlockFunc := s.database.LockDevice(deviceUUID)
+	defer unlockFunc()
+
 	device, err := s.database.GetSignatureDevice(deviceUUID)
 	if err != nil {
 		WriteErrorResponse(response, http.StatusNotFound, []string{err.Error()})
@@ -42,10 +46,14 @@ func (s *Server) SignTransaction(response http.ResponseWriter, request *http.Req
 		return
 	}
 
+	defer s.database.IncrementCounter(deviceUUID)
+
 	signatureResponse, err := device.Sign(signTransactionRequest.Data)
 	if err != nil {
 		WriteInternalError(response)
 		return
 	}
+
+	s.database.StoreSignatureDevice(device)
 	WriteAPIResponse(response, 200, signatureResponse)
 }

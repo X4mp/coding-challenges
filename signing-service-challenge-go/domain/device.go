@@ -17,7 +17,7 @@ type SignatureDevice struct {
 	KeyPairRSA *crypto.RSAKeyPair
 	KeyPairECC *crypto.ECCKeyPair
 
-	counter       uint64
+	Counter       uint64
 	lastSignature string
 }
 
@@ -54,7 +54,7 @@ type SignatureResponse struct {
 
 // Sign takes the user-data to be signed as input, generates the signature based on the algorithm of the device and returns the
 // base64 encoded signature together with the concrete input string
-func (d SignatureDevice) Sign(dataToBeSigned string) (response *SignatureResponse, err error) {
+func (d *SignatureDevice) Sign(dataToBeSigned string) (response *SignatureResponse, err error) {
 
 	var signer crypto.Signer
 	switch d.Algorithm {
@@ -67,13 +67,15 @@ func (d SignatureDevice) Sign(dataToBeSigned string) (response *SignatureRespons
 		return
 	}
 
-	input := fmt.Sprintf("%d_%s_%s", d.counter, dataToBeSigned, d.lastSignature)
+	fmt.Println("last_sig: " + d.lastSignature)
+	input := fmt.Sprintf("%d_%s_%s", d.Counter, dataToBeSigned, d.lastSignature)
 	signature, err := signer.Sign([]byte(input))
 	if err != nil {
 		return
 	}
 
 	d.lastSignature = b64.StdEncoding.EncodeToString(signature)
+	fmt.Println("new_sig: " + d.lastSignature)
 
 	response = &SignatureResponse{
 		Signature:      d.lastSignature,
@@ -82,7 +84,7 @@ func (d SignatureDevice) Sign(dataToBeSigned string) (response *SignatureRespons
 	return
 }
 
-func (d SignatureDevice) Verify(data, signature string) bool {
+func (d *SignatureDevice) Verify(data, signature string) bool {
 	var err error
 	var verifier crypto.Verifier
 	switch d.Algorithm {
@@ -99,7 +101,7 @@ func (d SignatureDevice) Verify(data, signature string) bool {
 		fmt.Println("Verification Error: not base64 decodable signature")
 		return false
 	}
-	
+
 	err = verifier.VerifySignature([]byte(data), rawSignature)
 	if err != nil {
 		fmt.Println("Verification Error: ", err.Error())
