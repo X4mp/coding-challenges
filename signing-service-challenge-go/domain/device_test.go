@@ -1,6 +1,10 @@
 package domain_test
 
 import (
+	cr "crypto"
+	"crypto/ecdsa"
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/base64"
 	"testing"
 
@@ -46,6 +50,55 @@ func TestSignatureDevice_Sign(t *testing.T) {
 			rawSignature, err := base64.StdEncoding.DecodeString(signatureResponse.Signature)
 			assert.NoError(t, err)
 			assert.NoError(t, verifier.VerifySignature([]byte(signatureResponse.DataToBeSigned), rawSignature))
+		})
+	})
+	t.Run("ECC", func(t *testing.T) {
+		t.Run("OK", func(t *testing.T) {
+			device, err := domain.NewSignatureDevice("Device 1", "ECC")
+			assert.NoError(t, err)
+
+			signatureResponse, err := device.Sign(dataToBeSigned)
+			assert.NoError(t, err)
+
+			verifier := crypto.NewECCVerifier(device.KeyPairECC.Public)
+
+			rawSignature, err := base64.StdEncoding.DecodeString(signatureResponse.Signature)
+			assert.NoError(t, err)
+			assert.NoError(t, verifier.VerifySignature([]byte(signatureResponse.DataToBeSigned), rawSignature))
+		})
+	})
+}
+
+func TestSignatureDevice_Verify(t *testing.T) {
+	dataToBeSigned := "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+
+	t.Run("RSA", func(t *testing.T) {
+		t.Run("OK", func(t *testing.T) {
+			device, err := domain.NewSignatureDevice("Device 1", "RSA")
+			assert.NoError(t, err)
+
+			msgHash, err := crypto.HashMessage([]byte(dataToBeSigned))
+			assert.NoError(t, err)
+			signature, err := rsa.SignPSS(rand.Reader, device.KeyPairRSA.Private, cr.SHA256, msgHash, nil)
+			assert.NoError(t, err)
+			b64Signature := base64.StdEncoding.Strict().EncodeToString(signature)
+
+			assert.True(t, device.Verify(dataToBeSigned, b64Signature))
+		})
+	})
+
+	t.Run("ECC", func(t *testing.T) {
+		t.Run("OK", func(t *testing.T) {
+			device, err := domain.NewSignatureDevice("Device 1", "ECC")
+			assert.NoError(t, err)
+
+			msgHash, err := crypto.HashMessage([]byte(dataToBeSigned))
+			assert.NoError(t, err)
+			signature, err := ecdsa.SignASN1(rand.Reader, device.KeyPairECC.Private, msgHash)
+			assert.NoError(t, err)
+			b64Signature := base64.StdEncoding.Strict().EncodeToString(signature)
+
+			assert.True(t, device.Verify(dataToBeSigned, b64Signature))
 		})
 	})
 }
