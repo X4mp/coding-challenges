@@ -40,3 +40,30 @@ func (g *ECCGenerator) Generate() (*ECCKeyPair, error) {
 		Private: key,
 	}, nil
 }
+
+func NewAbstractTools(algorithm string) (signer Signer, verifier Verifier, err error) {
+	switch algorithm {
+	case "RSA":
+		generator := RSAGenerator{}
+		var keyPair *RSAKeyPair
+		keyPair, err = generator.Generate()
+		if err != nil {
+			break
+		}
+		signer = NewRSASigner(keyPair.Private)
+		verifier = NewRSAVerifier(keyPair.Public)
+	case "ECC":
+		generator := ECCGenerator{}
+		var keyPair *ECCKeyPair
+		keyPair, err = generator.Generate()
+		if err != nil {
+			break
+		}
+		signer = NewECCSigner(keyPair.Private)
+		verifier = NewECCVerifier(keyPair.Public)
+	default:
+		err = ErrInvalidAlgorithm
+		return
+	}
+	return
+}

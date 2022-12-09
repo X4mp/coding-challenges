@@ -6,7 +6,11 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+
+	"fmt"
 )
+
+var ErrInvalidAlgorithm error = fmt.Errorf("invalid algorithm choosen")
 
 // Signer defines a contract for different types of signing implementations.
 type Signer interface {

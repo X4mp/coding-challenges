@@ -46,8 +46,6 @@ func (s *Server) SignTransaction(response http.ResponseWriter, request *http.Req
 		return
 	}
 
-	defer s.database.IncrementCounter(deviceUUID)
-
 	signatureResponse, err := device.Sign(signTransactionRequest.Data)
 	if err != nil {
 		WriteInternalError(response)

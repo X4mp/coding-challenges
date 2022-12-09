@@ -8,16 +8,15 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrInvalidAlgorithm error = fmt.Errorf("invalid algorithm choosen")
-
 type SignatureDevice struct {
-	Label      string
-	DeviceId   uuid.UUID
-	Algorithm  string
-	KeyPairRSA *crypto.RSAKeyPair
-	KeyPairECC *crypto.ECCKeyPair
+	Label     string
+	DeviceId  uuid.UUID
+	Algorithm string
 
-	Counter       uint64
+	Signer   crypto.Signer   // exposed for testing purpose
+	Verifier crypto.Verifier // exposed for testing purpose
+
+	counter       uint64
 	lastSignature string
 }
 
@@ -31,16 +30,10 @@ func NewSignatureDevice(label, algorithm string) (device *SignatureDevice, err e
 		lastSignature: initLastSignature,
 	}
 
-	switch algorithm {
-	case "RSA":
-		generator := crypto.RSAGenerator{}
-		device.KeyPairRSA, err = generator.Generate()
-	case "ECC":
-		generator := crypto.ECCGenerator{}
-		device.KeyPairECC, err = generator.Generate()
-	default:
+	device.Signer, device.Verifier, err = crypto.NewAbstractTools(algorithm)
+	if err != nil {
 		device = nil
-		err = ErrInvalidAlgorithm
+		return
 	}
 
 	return
@@ -55,27 +48,14 @@ type SignatureResponse struct {
 // Sign takes the user-data to be signed as input, generates the signature based on the algorithm of the device and returns the
 // base64 encoded signature together with the concrete input string
 func (d *SignatureDevice) Sign(dataToBeSigned string) (response *SignatureResponse, err error) {
-
-	var signer crypto.Signer
-	switch d.Algorithm {
-	case "ECC":
-		signer = crypto.NewECCSigner(d.KeyPairECC.Private)
-	case "RSA":
-		signer = crypto.NewRSASigner(d.KeyPairRSA.Private)
-	default:
-		err = ErrInvalidAlgorithm
-		return
-	}
-
-	fmt.Println("last_sig: " + d.lastSignature)
-	input := fmt.Sprintf("%d_%s_%s", d.Counter, dataToBeSigned, d.lastSignature)
-	signature, err := signer.Sign([]byte(input))
+	input := fmt.Sprintf("%d_%s_%s", d.counter, dataToBeSigned, d.lastSignature)
+	signature, err := d.Signer.Sign([]byte(input))
 	if err != nil {
 		return
 	}
 
 	d.lastSignature = b64.StdEncoding.EncodeToString(signature)
-	fmt.Println("new_sig: " + d.lastSignature)
+	d.counter += 1
 
 	response = &SignatureResponse{
 		Signature:      d.lastSignature,
@@ -84,25 +64,15 @@ func (d *SignatureDevice) Sign(dataToBeSigned string) (response *SignatureRespon
 	return
 }
 
+// Verify takes the the user-data to be signed togehter with the signature and verifies the signature over the data
 func (d *SignatureDevice) Verify(data, signature string) bool {
-	var err error
-	var verifier crypto.Verifier
-	switch d.Algorithm {
-	case "ECC":
-		verifier = crypto.NewECCVerifier(d.KeyPairECC.Public)
-	case "RSA":
-		verifier = crypto.NewRSAVerifier(d.KeyPairRSA.Public)
-	default:
-		return false
-	}
-
 	rawSignature, err := b64.StdEncoding.DecodeString(signature)
 	if err != nil {
 		fmt.Println("Verification Error: not base64 decodable signature")
 		return false
 	}
 
-	err = verifier.VerifySignature([]byte(data), rawSignature)
+	err = d.Verifier.VerifySignature([]byte(data), rawSignature)
 	if err != nil {
 		fmt.Println("Verification Error: ", err.Error())
 	}

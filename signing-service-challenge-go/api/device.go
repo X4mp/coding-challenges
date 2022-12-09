@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/X4mp/coding-challenges/signing-service-challenge/domain"
+	"github.com/X4mp/coding-challenges/signing-service-challenge/crypto"
+
 )
 
 var (
@@ -36,7 +38,7 @@ func (s *Server) CreateSignatureDevice(response http.ResponseWriter, request *ht
 	}
 
 	signatureDevice, err := domain.NewSignatureDevice(createSignatureDeviceRequest.Label, createSignatureDeviceRequest.Algorithm)
-	if err != nil && err == domain.ErrInvalidAlgorithm {
+	if err != nil && err == crypto.ErrInvalidAlgorithm {
 		WriteErrorResponse(response, http.StatusBadRequest, []string{err.Error()})
 		return
 	} else if err != nil {

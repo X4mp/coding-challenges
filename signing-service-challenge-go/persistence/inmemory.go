@@ -40,14 +40,6 @@ func (d *Database) LockDevice(deviceID uuid.UUID) func() {
 	}
 }
 
-func (d *Database) IncrementCounter(deviceID uuid.UUID) {
-	device, ok := d.registeredDevicesMap[deviceID]
-	if ok {
-		device.Counter += 1
-		d.registeredDevicesMap[deviceID] = device
-	}
-}
-
 func (d *Database) GetSignatureDevice(deviceId uuid.UUID) (device *domain.SignatureDevice, err error) {
 	d.registeredDevicesMapMutex.RLock()
 	defer d.registeredDevicesMapMutex.RUnlock()
